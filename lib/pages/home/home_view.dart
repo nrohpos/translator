@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:translator/pages/home/header_type.dart';
 import 'package:translator/pages/home/keyword.dart';
 
@@ -23,8 +24,9 @@ class _HomeViewState extends State<HomeView> {
   List<KeyWord> itemList = [];
 
   Future<void> readJson() async {
+    final path = Get.arguments["data"] as String;
     final String response =
-        await rootBundle.loadString('assets/json/localizeKh.json');
+        await rootBundle.loadString('assets/json/$path.json');
     final data = await json.decode(response) as Map<String, dynamic>;
 
     setState(() {
@@ -36,23 +38,34 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: DataTable(
-          columns: HeaderType.values
-              .map((e) => DataColumn(
-                      label: Text(
-                    e.getName(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )))
-              .toList(),
-          rows: itemList
-              .map((e) => DataRow(
-                  cells: [DataCell(Text(e.key)), DataCell(Text(e.value))]))
-              .toList()),
-    );
+    return DataTable(
+        columns: HeaderType.values
+            .map(
+              (e) => DataColumn(
+                label: Text(
+                  e.getName(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+        rows: itemList
+            .map(
+              (e) => DataRow(
+                cells: [
+                  DataCell(
+                    Text(e.key),
+                  ),
+                  DataCell(
+                    Text(e.value),
+                  ),
+                ],
+              ),
+            )
+            .toList());
   }
 }

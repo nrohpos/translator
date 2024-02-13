@@ -2,28 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:translator/pages/Home/home_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              children: [
+                HomeView(),
+              ],
+            ),
+          )
+        ],
       ),
-      body: const HomeView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-
-        },
+        onPressed: () {},
         tooltip: 'New',
         child: const Icon(Icons.add),
       ),

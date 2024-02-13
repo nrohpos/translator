@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:translator/pages/Home/home_page.dart';
 import 'package:translator/pages/language/language_vm.dart';
+import 'package:translator/utils/views/vertical_splitView.dart';
 
 import '../../language/language.dart';
 
@@ -36,34 +37,46 @@ class _LanguagePageState extends State<LanguagePage> {
         child: GetBuilder<LanguageViewModel>(
           init: LanguageViewModel(),
           builder: (vm) {
-            return FutureBuilder<List<Language>>(
-              builder: (BuildContext context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  final items = snapshot.data ?? [];
-                  return ListView.builder(
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                          title: Text(
-                            item.getName(),
-                          ),
-                          tileColor: Colors.white,
-                          onTap: () {
-                            Get.toNamed("/home");
+            return VerticalSplitView(
+                left: FutureBuilder<List<Language>>(
+                  builder: (BuildContext context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      final items = snapshot.data ?? [];
+                      return ListView.builder(
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            return ListTile(
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              title: Text(
+                                item.getName(),
+                              ),
+                              tileColor: Colors.white,
+                              onTap: () {
+                                Get.toNamed(
+                                  "/home",
+                                  arguments: {
+                                    "data": item.getFileName(),
+                                  },
+                                );
+                              },
+                              trailing:
+                                  const Icon(Icons.arrow_forward_ios_rounded),
+                            );
                           },
-                          trailing: const Icon(Icons.arrow_forward_ios_rounded),
-                        );
-                      },
-                      itemCount: items.length);
-                }
-                return Container();
-              },
-              future: vm.getLanguage(),
-            );
+                          itemCount: items.length);
+                    } else {
+                      return Container();
+                    }
+                  },
+                  future: vm.getLanguage(),
+                ),
+                right: HomePage());
           },
         ),
       ),

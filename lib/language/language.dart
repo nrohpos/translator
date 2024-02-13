@@ -10,4 +10,13 @@ enum Language {
         return "English";
     }
   }
+
+  String getFileName() {
+    switch (this) {
+      case Language.KH:
+        return "localize_kh";
+      case Language.EN:
+        return "localize_en";
+    }
+  }
 }
