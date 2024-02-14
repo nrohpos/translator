@@ -4,6 +4,7 @@ import 'package:translator/pages/home/loading_state_view.dart';
 import 'package:translator/utils/views/vertical_splitview.dart';
 
 import '../../language/language.dart';
+import '../../utils/views/expandable_floating.dart';
 import 'language_vm.dart';
 import 'localize_list_view.dart';
 
@@ -21,10 +22,7 @@ class _LanguagePageState extends State<LanguagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text(
           "Language",
           style: TextStyle(
@@ -43,30 +41,30 @@ class _LanguagePageState extends State<LanguagePage> {
                 builder: (vm) {
                   return VerticalSplitView(
                     left: ListView.builder(
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          final isSelect = vm.currentLanguage.value == item;
-                          print("alksjdkfjksdfds${isSelect} , ${item.getName()}");
-                          return ListTile(
-                            dense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                            title: Text(
-                              item.getName(),
-                            ),
-                            tileColor: Colors.white,
-                            onTap: () async {
-                              await vm.getKeyword(language: item);
-                            },
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                            ),
-                            selectedColor: Colors.cyanAccent,
-                           selected: isSelect,
-                          );
-                        },
-                        itemCount: items.length),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final isSelect = vm.currentLanguage.value == item;
+                        return ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          title: Text(
+                            item.getName(),
+                          ),
+                          tileColor: Colors.white,
+                          onTap: () async {
+                            await vm.getKeyword(language: item);
+                          },
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                          ),
+                          selectedColor: Colors.cyanAccent,
+                          selected: isSelect,
+                        );
+                      },
+                      itemCount: items.length,
+                    ),
                     right: vm.showLoading.isTrue
                         ? const LoadingStateView()
                         : LocalizeListView(items: vm.items),
@@ -79,6 +77,23 @@ class _LanguagePageState extends State<LanguagePage> {
           },
           future: viewModel.getLanguage(),
         ),
+      ),
+      floatingActionButton: ExpandableFab(
+        distance: 112,
+        children: [
+          ActionButton(
+            onPressed: () => {},
+            icon: const Icon(Icons.language),
+          ),
+          ActionButton(
+            onPressed: () => {},
+            icon: const Icon(Icons.import_export),
+          ),
+          ActionButton(
+            onPressed: () => {},
+            icon: const Icon(Icons.videocam),
+          ),
+        ],
       ),
     );
   }
