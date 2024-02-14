@@ -6,13 +6,16 @@ class VerticalSplitView extends StatefulWidget {
   final double ratio;
 
   const VerticalSplitView(
-      {required this.left, required this.right, this.ratio = 0.5})
+      {super.key, required this.left, required this.right, this.ratio = 0.5})
       : assert(ratio >= 0),
-        assert(ratio <= 1),
-        super();
+        assert(ratio <= 1);
 
   @override
-  _VerticalSplitViewState createState() => _VerticalSplitViewState();
+  State<StatefulWidget> createState() {
+    return _VerticalSplitViewState();
+  }
+
+
 }
 
 class _VerticalSplitViewState extends State<VerticalSplitView> {

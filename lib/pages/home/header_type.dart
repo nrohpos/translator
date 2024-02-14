@@ -35,14 +35,14 @@
 //   }
 // }
 enum HeaderType {
-  KEY,
-  VALUE;
+  key,
+  value;
 
   String getName() {
     switch (this) {
-      case HeaderType.KEY:
+      case HeaderType.key:
         return "Key";
-      case HeaderType.VALUE:
+      case HeaderType.value:
         return "Value";
     }
   }

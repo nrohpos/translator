@@ -1,21 +1,21 @@
 enum Language {
-  KH,
-  EN;
+  kh,
+  en;
 
   String getName() {
     switch (this) {
-      case KH:
+      case kh:
         return "ខ្មែរ";
-      case EN:
+      case en:
         return "English";
     }
   }
 
   String getFileName() {
     switch (this) {
-      case Language.KH:
+      case Language.kh:
         return "localize_kh";
-      case Language.EN:
+      case Language.en:
         return "localize_en";
     }
   }
