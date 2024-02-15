@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:translator/pages/import/import_error_type.dart';
 import 'package:translator/pages/import/import_vm.dart';
 
 class ImportPage extends StatefulWidget {
@@ -22,7 +18,6 @@ class _ImportPageState extends State<ImportPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    this.openConnectionDB();
   }
 
   @override
@@ -38,60 +33,39 @@ class _ImportPageState extends State<ImportPage> {
       body: GetBuilder<ImportViewModel>(
         init: viewModel,
         builder: (vm) {
-          return Container(
-            child: vm.isDataEmpty.isTrue
-                ? GestureDetector(
-                    child: _ImportFileEmptyView(
-                      controller: controller,
-                    ),
-                    onTap: () async {
-                      _getData();
-                    },
-                  )
-                : Text("data exist"),
-          );
+          return vm.isSyncData.isFalse
+              ? Container(
+                  child: vm.isDataEmpty.isTrue
+                      ? GestureDetector(
+                          child: _ImportFileEmptyView(
+                            controller: controller,
+                          ),
+                          onTap: () async {
+                            final language = controller.text.trim();
+                            if (language.isNotEmpty) {
+                              final type = await vm.getData(language);
+                              if (type == ImportErrorType.success) {
+                                // Since screen
+                              } else {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Text(
+                                      'Wrong format, Make sure it is a json file!'),
+                                ));
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text('Please enter a language'),
+                              ));
+                            }
+                          },
+                        )
+                      : Text("data exist"),
+                )
+              : const _SyncDataView();
         },
       ),
-    );
-  }
-
-  _getData() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      allowedExtensions: ["json"],
-    );
-    if (result != null) {
-      File file = File(result.files.first.path!);
-      final type = result.files.first.extension;
-      if (type == "json") {
-        final raw = await file.readAsBytes();
-        final jsonData = json.decode(utf8.decode(raw));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("File format is incorrect"),
-        ));
-      }
-    }
-  }
-
-  void openConnectionDB() async {
-    final db = await openDatabase(
-      // Set the path to the database. Note: Using the `join` function from the
-      // `path` package is best practice to ensure the path is correctly
-      // constructed for each platform.
-      'translator.db',
-      // When the database is first created, create a table to store dogs.
-      onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
-        return db.execute(
-          'CREATE TABLE IF NOT EXISTS localize(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
-        );
-      },
-      onUpgrade: (db, oldVersion, newVersion) {
-        
-      },
-      // Set the version. This executes the onCreate function and provides a
-      // path to perform database upgrades and downgrades.
-      version: 1,
     );
   }
 }
@@ -106,7 +80,7 @@ class _ImportFileEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -121,10 +95,39 @@ class _ImportFileEmptyView extends StatelessWidget {
               maxLength: 10,
               textAlign: TextAlign.center,
             ),
-            Text('Browse to import \nWith type of json.')
+            const Text('Browse to import \nWith type of json.')
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SyncDataView extends StatelessWidget {
+  const _SyncDataView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<ImportViewModel>(
+      builder: (vm) {
+        print(vm.indicatorAmount.value);
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              LinearProgressIndicator(
+                value: vm.indicatorAmount.value,
+                semanticsLabel: 'Linear progress indicator',
+              ),
+              Text(
+                'Linear progress indicator with a fixed color',
+                style: TextStyle(fontSize: 20),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

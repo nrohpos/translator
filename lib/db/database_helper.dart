@@ -1,28 +1,30 @@
-
-
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
-  static String databaseName = "translator";
+  final String _databaseName = "translator";
+  final String tableName = "localize";
   static DatabaseHelper shared = DatabaseHelper();
-
+  late Database _db;
 
   void openConnectionDB() async {
-    final db = await openDatabase(
-      // Set the path to the database. Note: Using the `join` function from the
-      // `path` package is best practice to ensure the path is correctly
-      // constructed for each platform.
-      'translator.db',
-      // When the database is first created, create a table to store dogs.
+    _db = await openDatabase(
+      _databaseName,
       onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
         return db.execute(
-          'CREATE TABLE localize(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
+          'CREATE TABLE IF NOT EXISTS $tableName(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
         );
       },
-      // Set the version. This executes the onCreate function and provides a
-      // path to perform database upgrades and downgrades.
+      onUpgrade: (db, oldVersion, newVersion) {},
       version: 1,
     );
+  }
+
+  Future<int> interData({dynamic data, required String toTable}) async {
+    final row = _db.transaction((txn) async {
+      final id = txn.insert(toTable, data);
+      await txn.batch().commit(exclusive: true);
+      return id;
+    });
+    return Future(() => row);
   }
 }
