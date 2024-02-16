@@ -25,45 +25,80 @@ class _ImportPageState extends State<ImportPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.cyan,
-        title: Text(
+        title: const Text(
           "Import File",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: GetBuilder<ImportViewModel>(
         init: viewModel,
         builder: (vm) {
+          if (vm.isDataEmpty.isTrue) {
+          }
           return vm.isSyncData.isFalse
-              ? Container(
-                  child: vm.isDataEmpty.isTrue
-                      ? GestureDetector(
-                          child: _ImportFileEmptyView(
-                            controller: controller,
-                          ),
-                          onTap: () async {
-                            final language = controller.text.trim();
-                            if (language.isNotEmpty) {
-                              final type = await vm.getData(language);
-                              if (type == ImportErrorType.success) {
-                                // Since screen
+              ? Column(
+                  children: [
+                    Spacer(),
+                    vm.isDataEmpty.isTrue
+                        ? GestureDetector(
+                            child: _ImportFileEmptyView(
+                              controller: controller,
+                            ),
+                            onTap: () async {
+                              final language = controller.text.trim();
+                              if (language.isNotEmpty) {
+                                final type = await vm.getData(language);
+                                if (type == ImportErrorType.success) {
+                                  // Since screen
+                                } else {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    content: Text(
+                                        'Wrong format, Make sure it is a json file!'),
+                                  ));
+                                }
                               } else {
                                 ScaffoldMessenger.of(context)
                                     .showSnackBar(const SnackBar(
-                                  content: Text(
-                                      'Wrong format, Make sure it is a json file!'),
+                                  content: Text('Please enter a language'),
                                 ));
                               }
-                            } else {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text('Please enter a language'),
-                              ));
-                            }
-                          },
-                        )
-                      : Text("data exist"),
+                            },
+                          )
+                        : const Text(
+                            "data exist",
+                          ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.cyanAccent.shade100,
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  "Reset",
+                                ),
+                              ),
+                            ),
+                            onTap: () async {
+                              await vm.resetDB();
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
                 )
-              : const _SyncDataView();
+              : _SyncDataView(
+                  percentage: vm.indicatorAmount.value,
+                );
         },
       ),
     );
@@ -104,30 +139,48 @@ class _ImportFileEmptyView extends StatelessWidget {
 }
 
 class _SyncDataView extends StatelessWidget {
-  const _SyncDataView({super.key});
+  final double percentage;
+
+  const _SyncDataView({super.key, this.percentage = 0});
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ImportViewModel>(
-      builder: (vm) {
-        print(vm.indicatorAmount.value);
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              LinearProgressIndicator(
-                value: vm.indicatorAmount.value,
-                semanticsLabel: 'Linear progress indicator',
+    final width = Get.width;
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Stack(
+            children: [
+              Container(
+                width: width,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.cyan.shade100,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(4),
+                  ),
+                ),
               ),
-              Text(
-                'Linear progress indicator with a fixed color',
-                style: TextStyle(fontSize: 20),
+              Container(
+                width: width * percentage,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.cyan.shade400,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(4),
+                  ),
+                ),
               ),
             ],
           ),
-        );
-      },
+          const Text(
+            'We are processing your data.....',
+            style: TextStyle(fontSize: 20),
+          ),
+        ],
+      ),
     );
   }
 }

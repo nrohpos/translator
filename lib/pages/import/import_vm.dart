@@ -46,10 +46,14 @@ class ImportViewModel extends GetxController {
       );
       if (rowId > 0) {
         final percentage = rowId * 100 / maxLength;
-        indicatorAmount.value = percentage;
+        indicatorAmount.value = percentage / 100;
         isSyncSuccess.value = percentage == 100;
         update();
       }
     });
+  }
+
+  Future<void> resetDB() async {
+    await DatabaseHelper.shared.resetDB();
   }
 }

@@ -5,10 +5,10 @@ import '../pages/home/language_page.dart';
 
 appRoutes() => [
       GetPage(
-        name: '/',
+        name: '/language',
         page: () => const LanguagePage(),
       ),GetPage(
-        name: '/import',
+        name: '/',
         page: () => const ImportPage(),
       ),
     ];

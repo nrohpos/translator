@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Translator',
-      initialRoute: '/import',
+      initialRoute: '/',
       getPages: appRoutes(),
     );
   }
