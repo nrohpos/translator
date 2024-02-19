@@ -3,7 +3,7 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:translator/db/database_helper.dart';
 import 'package:translator/route/router.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   DatabaseHelper.shared.openConnectionDB();
   runApp(const MyApp());

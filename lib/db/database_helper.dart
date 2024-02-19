@@ -45,8 +45,19 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, Object?>>> getAllFor(String lang) async {
-    final sql = "select * from $tableName where localize = '$lang'";
+    final sql = "select * from $tableName where locale = '$lang'";
     print(sql);
     return await _db.rawQuery(sql);
+  }
+
+  Future<List<Map<String, Object?>>> getLanguages() async {
+    final sql = "select * from $tableName group by locale";
+    return await _db.rawQuery(sql);
+  }
+
+  Future<bool> isTableEmpty() async {
+    final result = await _db.query(tableName);
+    print(result);
+    return result.isEmpty;
   }
 }

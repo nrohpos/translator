@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:translator/pages/home/language_page.dart';
 import 'package:translator/pages/import/import_error_type.dart';
 import 'package:translator/pages/import/import_vm.dart';
 
@@ -36,14 +37,28 @@ class _ImportPageState extends State<ImportPage> {
       body: GetBuilder<ImportViewModel>(
         init: viewModel,
         builder: (vm) {
-          if (vm.isDataEmpty.isTrue) {
-          }
-          return vm.isSyncData.isFalse
-              ? Column(
-                  children: [
-                    Spacer(),
-                    vm.isDataEmpty.isTrue
-                        ? GestureDetector(
+          // if (vm.isDataEmpty.isFalse) {
+          //   Get.offAllNamed("/language");
+          // }
+          return FutureBuilder(
+              future: vm.checkData(),
+              builder: (context, snapShot) {
+                if (snapShot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapShot.connectionState == ConnectionState.done) {
+                  print("asdfjskdfsdf ${snapShot.data}");
+                  if (!(snapShot.data ?? true)) {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (_) => const LanguagePage()));
+                  }
+                }
+                return vm.isSyncData.isFalse
+                    ? Column(
+                        children: [
+                          const Spacer(),
+                          GestureDetector(
                             child: _ImportFileEmptyView(
                               controller: controller,
                             ),
@@ -67,38 +82,37 @@ class _ImportPageState extends State<ImportPage> {
                                 ));
                               }
                             },
-                          )
-                        : const Text(
-                            "data exist",
                           ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.cyanAccent.shade100,
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "Reset",
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.cyanAccent.shade100,
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        "Reset",
+                                      ),
+                                    ),
+                                  ),
+                                  onTap: () async {
+                                    await vm.resetDB();
+                                  },
                                 ),
                               ),
-                            ),
-                            onTap: () async {
-                              await vm.resetDB();
-                            },
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                )
-              : _SyncDataView(
-                  percentage: vm.indicatorAmount.value,
-                );
+                            ],
+                          )
+                        ],
+                      )
+                    : _SyncDataView(
+                        percentage: vm.indicatorAmount.value,
+                      );
+              });
         },
       ),
     );

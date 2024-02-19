@@ -8,10 +8,16 @@ import 'package:translator/pages/import/import_error_type.dart';
 import 'package:uuid/uuid.dart';
 
 class ImportViewModel extends GetxController {
-  var isDataEmpty = true.obs;
   var isSyncData = false.obs;
   var indicatorAmount = 0.0.obs;
   var isSyncSuccess = false.obs;
+
+  Future<bool> checkData() async {
+    final result = await DatabaseHelper.shared.isTableEmpty();
+    await Future.delayed(Duration(seconds: 2));
+    print("lkasjdfhsakjdfasd${result}");
+    return result;
+  }
 
   Future<ImportErrorType> getData(String language) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(

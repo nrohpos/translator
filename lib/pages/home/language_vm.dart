@@ -27,17 +27,16 @@ class LanguageViewModel extends GetxController {
       return;
     }
     showLoading(true);
+    update();
     final data =
         await DatabaseHelper.shared.getAllFor(language.name.toUpperCase());
 
-    update();
-    await Future.delayed(const Duration(seconds: 2));
-    showLoading(false);
     currentLanguage(language);
     items.assignAll(data
         .map((e) =>
             KeyWord.init(key: e["key"] as String, value: e["value"] as String))
         .toList());
+    showLoading(false);
     update();
   }
 }
