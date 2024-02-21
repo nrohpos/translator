@@ -13,13 +13,10 @@ class ImportViewModel extends GetxController {
   var isSyncSuccess = false.obs;
 
   Future<bool> checkData() async {
-    final result = await DatabaseHelper.shared.isTableEmpty();
-    await Future.delayed(Duration(seconds: 2));
-    print("lkasjdfhsakjdfasd${result}");
-    return result;
+    return await DatabaseHelper.shared.isTableEmpty(tableName: "localize");
   }
 
-  Future<ImportErrorType> getData(String language) async {
+  Future<void> getData(String language) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowedExtensions: ["json"],
     );
@@ -29,16 +26,14 @@ class ImportViewModel extends GetxController {
       if (type == "json") {
         final raw = await file.readAsBytes();
         Map<String, dynamic> jsonData = json.decode(utf8.decode(raw));
-        syncData(jsonData, language);
         isSyncData.value = true;
         update();
-        return ImportErrorType.success;
+        syncData(jsonData, language);
       }
     }
-    return ImportErrorType.wrongFormat;
   }
 
-  void syncData(Map<String, dynamic> data, String language) {
+  Future<void> syncData(Map<String, dynamic> data, String language) async {
     final maxLength = data.length;
     data.forEach((key, value) async {
       final rowId = await DatabaseHelper.shared.interData(
@@ -53,7 +48,7 @@ class ImportViewModel extends GetxController {
       if (rowId > 0) {
         final percentage = rowId * 100 / maxLength;
         indicatorAmount.value = percentage / 100;
-        isSyncSuccess.value = percentage == 100;
+        isSyncSuccess.value = percentage >= 100;
         update();
       }
     });

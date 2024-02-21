@@ -1,26 +1,26 @@
 import 'package:get/get.dart';
 import 'package:translator/db/database_helper.dart';
-import 'package:translator/language/language.dart';
 
 import 'keyword.dart';
 
 class LanguageViewModel extends GetxController {
   final items = <KeyWord>[].obs;
   final showLoading = false.obs;
-  final currentLanguage = Language.kh.obs;
+  final currentLanguage = "".obs;
 
-  Future<List<Language>> getLanguage() async {
-    const list = Language.values;
+  Future<List<String?>> getLanguage() async {
     await Future.delayed(
       const Duration(seconds: 1),
     );
+    final result = await DatabaseHelper.shared.getLanguages();
+    final list = result.map((e) => e["locale"] as String?).toList();
     currentLanguage(list.first);
     getKeyword(language: currentLanguage.value, first: true);
     return Future(() => list);
   }
 
   Future<void> getKeyword({
-    required Language language,
+    required String language,
     bool first = false,
   }) async {
     if (currentLanguage.value == language && !first) {
@@ -28,8 +28,7 @@ class LanguageViewModel extends GetxController {
     }
     showLoading(true);
     update();
-    final data =
-        await DatabaseHelper.shared.getAllFor(language.name.toUpperCase());
+    final data = await DatabaseHelper.shared.getAllFor(language);
 
     currentLanguage(language);
     items.assignAll(data

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
@@ -29,12 +31,12 @@ class DatabaseHelper {
   Future<int> interData({dynamic data, required String toTable}) async {
     return _db.transaction((txn) async {
       final id = txn.insert(toTable, data);
-      await txn.batch().commit(continueOnError: true);
       return id;
     });
   }
 
   Future<void> resetDB() async {
+    print("Run reset");
     await _db.transaction((txn) async {
       txn.rawQuery("drop table $tableName");
     });
@@ -46,18 +48,28 @@ class DatabaseHelper {
 
   Future<List<Map<String, Object?>>> getAllFor(String lang) async {
     final sql = "select * from $tableName where locale = '$lang'";
-    print(sql);
-    return await _db.rawQuery(sql);
+    return rawQuery(sql);
   }
 
   Future<List<Map<String, Object?>>> getLanguages() async {
     final sql = "select * from $tableName group by locale";
-    return await _db.rawQuery(sql);
+    return await rawQuery(sql);
   }
 
-  Future<bool> isTableEmpty() async {
+  Future<bool> isTableEmpty({required String tableName}) async {
     final result = await _db.query(tableName);
-    print(result);
     return result.isEmpty;
   }
+
+  Future<List<Map<String, Object?>>> rawQuery(String sql) async {
+    print(sql);
+    final result = await _db.rawQuery(sql);
+    print(result);
+    return result;
+  }
+
+  Future<int> delete(String tbName, String where) async {
+    return await _db.delete(tbName, where: where);
+  }
+
 }
