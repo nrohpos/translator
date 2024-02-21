@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:translator/extension/string+extension.dart';
+import 'package:translator/model/keyword/keyword.dart';
 import 'package:translator/pages/home/loading_state_view.dart';
 import 'package:translator/utils/views/vertical_splitview.dart';
 
+import '../../model/language/language.dart';
 import '../../utils/views/expandable_floating.dart';
 import 'language_vm.dart';
 import 'localize_list_view.dart';
@@ -20,6 +24,7 @@ class _LanguagePageState extends State<LanguagePage> {
 
   @override
   Widget build(BuildContext context) {
+    print("ahksdfbjhasdfasd ${MediaQuery.of(context).size.width}");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -31,13 +36,12 @@ class _LanguagePageState extends State<LanguagePage> {
         ),
       ),
       body: Center(
-        child: FutureBuilder<List<String?>>(
+        child: FutureBuilder<List<Language>>(
           builder: (BuildContext context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
             } else if (snapshot.connectionState == ConnectionState.done) {
               final items = snapshot.data ?? [];
-              print("itemasdjfnasjdkfnasdf${items.length}");
               return GetBuilder<LanguageViewModel>(
                 builder: (vm) {
                   return VerticalSplitView(
@@ -51,11 +55,11 @@ class _LanguagePageState extends State<LanguagePage> {
                             horizontal: 12,
                           ),
                           title: Text(
-                            item.orEmpty,
+                            item.name.orEmpty,
                           ),
                           tileColor: Colors.white,
                           onTap: () async {
-                            await vm.getKeyword(language: item.orEmpty);
+                            await vm.getKeyword(language: item);
                           },
                           trailing: const Icon(
                             Icons.arrow_forward_ios_rounded,
@@ -68,7 +72,12 @@ class _LanguagePageState extends State<LanguagePage> {
                     ),
                     right: vm.showLoading.isTrue
                         ? const LoadingStateView()
-                        : LocalizeListView(items: vm.items),
+                        : LocalizeListView(
+                            items: vm.items,
+                            onEdit: (keyWord) {
+                              showEdit(keyWord);
+                            },
+                          ),
                   );
                 },
               );
@@ -96,6 +105,62 @@ class _LanguagePageState extends State<LanguagePage> {
           ),
         ],
       ),
+    );
+  }
+
+  showEdit(KeyWord keyWord) {
+    final keyController = TextEditingController(text: keyWord.key);
+    final valueController = TextEditingController(text: keyWord.value);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Container(
+              margin: EdgeInsets.all(Get.width * 0.04),
+              padding: EdgeInsets.all(Get.width * 0.04),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: keyController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            fillColor: Colors.greenAccent,
+                            hintText: "Key",
+                          ),
+                          maxLines: 1,
+                          maxLength: 10,
+                        ),
+                      ),
+                      SizedBox(
+                        width: Get.width * 0.04,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: valueController,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            fillColor: Colors.greenAccent,
+                            hintText: "Value",
+                          ),
+                          maxLines: 1,
+                          maxLength: 10,
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

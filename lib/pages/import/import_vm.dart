@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:translator/db/database_helper.dart';
+import 'package:translator/model/keyword/keyword_dao.dart';
 import 'package:translator/pages/import/import_error_type.dart';
 import 'package:uuid/uuid.dart';
 
@@ -37,7 +38,7 @@ class ImportViewModel extends GetxController {
     final maxLength = data.length;
     data.forEach((key, value) async {
       final rowId = await DatabaseHelper.shared.interData(
-        toTable: DatabaseHelper.shared.tableName,
+        toTable: KeyWordDao().tableName,
         data: {
           'id': const Uuid().v4(),
           'key': key,

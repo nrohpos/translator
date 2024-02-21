@@ -1,26 +1,31 @@
 import 'package:get/get.dart';
 import 'package:translator/db/database_helper.dart';
+import 'package:translator/extension/string+extension.dart';
+import 'package:translator/model/keyword/keyword_dao.dart';
+import 'package:translator/model/language/language.dart';
+import 'package:translator/model/language/language_dao.dart';
 
-import 'keyword.dart';
+import '../../model/keyword/keyword.dart';
 
 class LanguageViewModel extends GetxController {
   final items = <KeyWord>[].obs;
   final showLoading = false.obs;
-  final currentLanguage = "".obs;
+  final currentLanguage = Language.init().obs;
+  final _keyWordDao = KeyWordDao();
+  final _languageDao = LanguageDao();
 
-  Future<List<String?>> getLanguage() async {
+  Future<List<Language>> getLanguage() async {
     await Future.delayed(
       const Duration(seconds: 1),
     );
-    final result = await DatabaseHelper.shared.getLanguages();
-    final list = result.map((e) => e["locale"] as String?).toList();
-    currentLanguage(list.first);
+    final result = await _languageDao.getLanguages();
+    currentLanguage(result.first);
     getKeyword(language: currentLanguage.value, first: true);
-    return Future(() => list);
+    return Future(() => result);
   }
 
   Future<void> getKeyword({
-    required String language,
+    required Language language,
     bool first = false,
   }) async {
     if (currentLanguage.value == language && !first) {
@@ -28,13 +33,9 @@ class LanguageViewModel extends GetxController {
     }
     showLoading(true);
     update();
-    final data = await DatabaseHelper.shared.getAllFor(language);
-
+    final data = await _keyWordDao.getAllFor(language.name.orEmpty);
     currentLanguage(language);
-    items.assignAll(data
-        .map((e) =>
-            KeyWord.init(key: e["key"] as String, value: e["value"] as String))
-        .toList());
+    items.assignAll(data);
     showLoading(false);
     update();
   }

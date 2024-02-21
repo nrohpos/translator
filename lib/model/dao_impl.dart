@@ -3,16 +3,16 @@ abstract class DaoImpl<T> {
 
   Future<T> selectFirst();
 
-  Future<int> delete(T item, String where);
+  Future<int> delete( String where);
 
-  Future<T> update(T item, String where);
+  Future<int> update(dynamic data, String where);
 
-  Future<int> insertInto(T item);
+  Future<int> insertInto(dynamic data);
 
   Future<List<T>> rawQuery({required String sql});
 
 
-  Future<T> upsert(T item, String? where);
+  Future<int?> upsert(dynamic data, String? where);
 
   Future<bool> isEmpty();
 

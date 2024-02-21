@@ -11,9 +11,9 @@ class BaseDao<T> implements DaoImpl<T> {
   String get tableName => "localize";
 
   @override
-  Future<int> insertInto(T item) {
-    // TODO: implement insertInto
-    throw UnimplementedError();
+  Future<int> insertInto(data) async {
+    final rowId = await _dbHelper.interData(data: data, toTable: tableName);
+    return rowId;
   }
 
   @override
@@ -45,20 +45,22 @@ class BaseDao<T> implements DaoImpl<T> {
   }
 
   @override
-  Future<int> delete(T item, String where) async {
+  Future<int> delete(String where) async {
     final result = await _dbHelper.delete(tableName, where);
     return result;
   }
 
   @override
-  Future<T> update(T item, String where) {
-    // TODO: implement update
-    throw UnimplementedError();
+  Future<int> update(data, String where) async {
+    final result = await _dbHelper.update(tableName, data, where);
+    return result;
   }
 
   @override
-  Future<T> upsert(T item, String? where) {
-    // TODO: implement upsert
-    throw UnimplementedError();
+  Future<int?> upsert(data, String? where) async {
+    if (where == null) {
+      return this.insertInto(data);
+    }
+    return update(data, where);
   }
 }

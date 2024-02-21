@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:translator/pages/Home/header_type.dart';
 
-import 'keyword.dart';
+import '../../model/keyword/keyword.dart';
 
 class LocalizeListView extends StatelessWidget {
   final List<KeyWord> items;
+  final Function(KeyWord) onEdit;
 
-  const LocalizeListView({super.key, required this.items});
+  const LocalizeListView({
+    super.key,
+    required this.items, required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +40,13 @@ class LocalizeListView extends StatelessWidget {
                     (e) {
                       return DataRow(
                         cells: [
-                          DataCell(Text(e.key),
-                              showEditIcon: true, onTap: () {}),
-                          DataCell(Text(e.value),
-                              showEditIcon: true, onTap: () {}),
+                          DataCell(Text(e.key), showEditIcon: true, onTap: () {
+                            onEdit(e);
+                          }),
+                          DataCell(Text(e.value), showEditIcon: true,
+                              onTap: () {
+                                onEdit(e);
+                          }),
                         ],
                       );
                     },

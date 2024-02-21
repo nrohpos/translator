@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:sqflite/sqflite.dart';
+import 'package:translator/model/language/language_dao.dart';
 
 class DatabaseHelper {
   final String _databaseName = "translator";
-  final String tableName = "localize";
   static DatabaseHelper shared = DatabaseHelper();
   late Database _db;
 
@@ -13,8 +13,8 @@ class DatabaseHelper {
       _databaseName,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE IF NOT EXISTS $tableName(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
-        );
+          'CREATE TABLE IF NOT EXISTS localize (id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
+        ); // create table with in here
       },
       onUpgrade: (db, oldVersion, newVersion) {
         // db.execute(
@@ -23,6 +23,9 @@ class DatabaseHelper {
       },
       version: 1,
     );
+    final dao = LanguageDao();
+    final resutl = await dao.isEmpty();
+
     // final result = await _db.rawQuery("drop table $tableName");
     // final result = await _db.query(tableName);
     // print(result);
@@ -35,7 +38,7 @@ class DatabaseHelper {
     });
   }
 
-  Future<void> resetDB() async {
+  Future<void> resetDB({String tableName = "localize"}) async {
     print("Run reset");
     await _db.transaction((txn) async {
       txn.rawQuery("drop table $tableName");
@@ -44,16 +47,6 @@ class DatabaseHelper {
     return await _db.execute(
       'CREATE TABLE IF NOT EXISTS $tableName(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
     );
-  }
-
-  Future<List<Map<String, Object?>>> getAllFor(String lang) async {
-    final sql = "select * from $tableName where locale = '$lang'";
-    return rawQuery(sql);
-  }
-
-  Future<List<Map<String, Object?>>> getLanguages() async {
-    final sql = "select * from $tableName group by locale";
-    return await rawQuery(sql);
   }
 
   Future<bool> isTableEmpty({required String tableName}) async {
@@ -72,4 +65,7 @@ class DatabaseHelper {
     return await _db.delete(tbName, where: where);
   }
 
+  Future<int> update(String tbName, dynamic data, String where) async {
+    return await _db.update(tbName, data, where: where);
+  }
 }
