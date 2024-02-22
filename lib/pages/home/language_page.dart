@@ -9,6 +9,7 @@ import 'package:translator/utils/views/vertical_splitview.dart';
 
 import '../../model/language/language.dart';
 import '../../utils/views/expandable_floating.dart';
+import 'event_action.dart';
 import 'language_vm.dart';
 import 'localize_list_view.dart';
 
@@ -21,10 +22,18 @@ class LanguagePage extends StatefulWidget {
 
 class _LanguagePageState extends State<LanguagePage> {
   late LanguageViewModel viewModel = Get.put(LanguageViewModel());
+  late Function(EventAction) onEventAction = (action) async {
+    if (action == EventAction.create) {
+      KeyWord keyword = KeyWord.init();
+      showEdit(keyword);
+    } else if (action == EventAction.export) {
+      viewModel.exportFile();
+      print("asdjfnasdfkasd");
+    }
+  };
 
   @override
   Widget build(BuildContext context) {
-    print("ahksdfbjhasdfasd ${MediaQuery.of(context).size.width}");
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -77,6 +86,7 @@ class _LanguagePageState extends State<LanguagePage> {
                             onEdit: (keyWord) {
                               showEdit(keyWord);
                             },
+                            onEventAction: onEventAction,
                           ),
                   );
                 },
@@ -114,48 +124,76 @@ class _LanguagePageState extends State<LanguagePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Center(
-            child: Container(
-              margin: EdgeInsets.all(Get.width * 0.04),
-              padding: EdgeInsets.all(Get.width * 0.04),
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: keyController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            fillColor: Colors.greenAccent,
-                            hintText: "Key",
+        return GestureDetector(
+          onTap: () {
+            navigator?.pop();
+          },
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: GestureDetector(
+              onTap: () {},
+              child: Container(
+                margin: EdgeInsets.all(Get.width * 0.04),
+                padding: EdgeInsets.all(Get.width * 0.04),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: keyController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              fillColor: Colors.greenAccent,
+                              hintText: "Key",
+                            ),
                           ),
-                          maxLines: 1,
-                          maxLength: 10,
+                        ),
+                        SizedBox(
+                          width: Get.width * 0.04,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: valueController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              fillColor: Colors.greenAccent,
+                              hintText: "Value",
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        navigator?.pop();
+                        keyWord.key = keyController.text;
+                        keyWord.value = valueController.text;
+                        viewModel.upSertKeyword(keyWord);
+                      },
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(120, 56),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          side: BorderSide(
+                            color: Colors.deepPurpleAccent,
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        width: Get.width * 0.04,
+                      child: const Text(
+                        "Submit",
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: valueController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            fillColor: Colors.greenAccent,
-                            hintText: "Value",
-                          ),
-                          maxLines: 1,
-                          maxLength: 10,
-                        ),
-                      )
-                    ],
-                  )
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

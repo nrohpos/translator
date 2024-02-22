@@ -5,13 +5,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:translator/db/database_helper.dart';
 import 'package:translator/model/keyword/keyword_dao.dart';
-import 'package:translator/pages/import/import_error_type.dart';
 import 'package:uuid/uuid.dart';
 
 class ImportViewModel extends GetxController {
   var isSyncData = false.obs;
   var indicatorAmount = 0.0.obs;
   var isSyncSuccess = false.obs;
+  var isDatabaseEmpty = DatabaseHelper.shared.isDatabaseEmpty.obs;
+
 
   Future<bool> checkData() async {
     return await DatabaseHelper.shared.isTableEmpty(tableName: "localize");

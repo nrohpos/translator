@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:sqflite/sqflite.dart';
-import 'package:translator/model/language/language_dao.dart';
+import 'package:translator/model/keyword/keyword_dao.dart';
 
 class DatabaseHelper {
   final String _databaseName = "translator";
   static DatabaseHelper shared = DatabaseHelper();
   late Database _db;
+  int countTable = 0;
+  bool _isKeywordEmpty = true;
+
+  bool get isDatabaseEmpty => _isKeywordEmpty;
 
   void openConnectionDB() async {
     _db = await openDatabase(
@@ -23,8 +27,9 @@ class DatabaseHelper {
       },
       version: 1,
     );
-    final dao = LanguageDao();
-    final resutl = await dao.isEmpty();
+    final items = await KeyWordDao().selectAll();
+    _isKeywordEmpty = items.isEmpty;
+    countTable = await countTables();
 
     // final result = await _db.rawQuery("drop table $tableName");
     // final result = await _db.query(tableName);
@@ -44,9 +49,13 @@ class DatabaseHelper {
       txn.rawQuery("drop table $tableName");
     });
 
-    return await _db.execute(
+    await _db.execute(
       'CREATE TABLE IF NOT EXISTS $tableName(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
     );
+
+    final items = await KeyWordDao().selectAll();
+    _isKeywordEmpty = items.isEmpty;
+    countTable = await countTables();
   }
 
   Future<bool> isTableEmpty({required String tableName}) async {
@@ -67,5 +76,11 @@ class DatabaseHelper {
 
   Future<int> update(String tbName, dynamic data, String where) async {
     return await _db.update(tbName, data, where: where);
+  }
+
+  Future<int> countTables() async {
+    var sql = "SELECT COUNT(*) FROM sqlite_master WHERE type='table'";
+    final result = await _db.rawQuery(sql);
+    return result.length;
   }
 }
