@@ -7,11 +7,6 @@ class DatabaseHelper {
   final String _databaseName = "translator";
   static DatabaseHelper shared = DatabaseHelper();
   late Database _db;
-  int countTable = 0;
-  bool _isKeywordEmpty = true;
-
-  bool get isDatabaseEmpty => _isKeywordEmpty;
-
   void openConnectionDB() async {
     _db = await openDatabase(
       _databaseName,
@@ -27,10 +22,6 @@ class DatabaseHelper {
       },
       version: 1,
     );
-    final items = await KeyWordDao().selectAll();
-    _isKeywordEmpty = items.isEmpty;
-    countTable = await countTables();
-
     // final result = await _db.rawQuery("drop table $tableName");
     // final result = await _db.query(tableName);
     // print(result);
@@ -52,10 +43,6 @@ class DatabaseHelper {
     await _db.execute(
       'CREATE TABLE IF NOT EXISTS $tableName(id TEXT PRIMARY KEY, key TEXT , value TEXT, locale CHAR)',
     );
-
-    final items = await KeyWordDao().selectAll();
-    _isKeywordEmpty = items.isEmpty;
-    countTable = await countTables();
   }
 
   Future<bool> isTableEmpty({required String tableName}) async {

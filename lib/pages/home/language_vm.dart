@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:translator/extension/string+extension.dart';
@@ -12,7 +10,8 @@ import 'package:translator/model/language/language_dao.dart';
 import '../../model/keyword/keyword.dart';
 
 class LanguageViewModel extends GetxController {
-  final items = <KeyWord>[].obs;
+  final _totalItems = <KeyWord>[].obs;
+  RxList<KeyWord> items = <KeyWord>[].obs;
   final showLoading = false.obs;
   final currentLanguage = Language.init().obs;
   final _keyWordDao = KeyWordDao();
@@ -39,7 +38,8 @@ class LanguageViewModel extends GetxController {
     update();
     final data = await _keyWordDao.getAllFor(language.name.orEmpty);
     currentLanguage(language);
-    items.assignAll(data);
+    _totalItems.assignAll(data);
+    items.assignAll(_totalItems);
     showLoading(false);
     update();
   }
@@ -49,7 +49,7 @@ class LanguageViewModel extends GetxController {
     update();
     // find localize list and update
     var found = false;
-    var list = items
+    var list = _totalItems
         .map((element) {
           if (element.id == keyWord.id) {
             element.value = keyWord.value;
@@ -64,22 +64,36 @@ class LanguageViewModel extends GetxController {
     if (!found) {
       // call inset
       list.insert(0, keyWord);
-      final result = await _keyWordDao.insertInto(keyWord.toJson());
-      print("insert for row $result");
+      await _keyWordDao.insertInto(keyWord.toJson());
     } else {
       // update
       String where = "id = '${keyWord.id}'";
-      final result = await _keyWordDao.update(keyWord.toJson(), where);
-      print("update for row $result");
+      await _keyWordDao.update(keyWord.toJson(), where);
     }
 
-    items.assignAll(list);
+    _totalItems.assignAll(list);
+    items.assignAll(_totalItems);
     showLoading(false);
     update();
   }
 
-  Future<void> exportFile() async {
-    final item = items.map((element) => element.export()).toString();
+  Future<void> deleteKeyword(KeyWord keyWord) async {
+    showLoading(true);
+    update();
+
+    final result = await _keyWordDao.delete("id = '${keyWord.id}'");
+    if (result > 0) {
+      _totalItems.removeWhere(
+              (element) => element.id.toLowerCase() == keyWord.id.toLowerCase());
+      items.assignAll(_totalItems);
+    }
+    showLoading(false);
+    update();
+  }
+
+  Future<String> exportFile() async {
+    final item =
+        '{${_totalItems.map((element) => element.export()).join(" , ")}}';
     final dir = await getApplicationDocumentsDirectory();
     // var found = false;
     var parentDir = dir.parent;
@@ -96,10 +110,26 @@ class LanguageViewModel extends GetxController {
     }
     if (listPath.isNotEmpty) {
       var userPath = "/${listPath.join("/")}/Downloads/";
-      final file = await File('$userPath${currentLanguage.value.name}.json').create(recursive: true);
-      await file.writeAsString(item);
+      final file = await File('$userPath${currentLanguage.value.name}.json')
+          .create(recursive: true);
+      final fileLocalize = await file.writeAsString(item);
+      return fileLocalize.path;
     }
+    return "";
+  }
 
-
+  Future<void> onFilterItems(String filter) async {
+    var result = <KeyWord>[];
+    if (filter.isEmpty) {
+      // reset items
+      result = _totalItems;
+    } else {
+      result = _totalItems.where((element) {
+        return element.key.toLowerCase().contains(filter) ||
+            element.value.toLowerCase().contains(filter);
+      }).toList();
+    }
+    items.assignAll(result);
+    update();
   }
 }

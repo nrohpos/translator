@@ -21,8 +21,5 @@ class KeyWord {
         'id': id,
       };
 
-  dynamic export() => {
-        'key': key,
-        'value': value,
-      };
+  String export() => "${'"'}$key${'"'} : ${'"'}$value${'"'}";
 }

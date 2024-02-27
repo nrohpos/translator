@@ -45,7 +45,7 @@ class LocalizeListView extends StatelessWidget {
                     (e) {
                       return DataRow(
                         cells: [
-                          DataCell(Text(e.key), showEditIcon: true, onTap: () {
+                          DataCell(Text(e.key), showEditIcon: false, onTap: () {
                             onEdit(e);
                           }),
                           DataCell(Text(e.value), showEditIcon: true,
@@ -73,7 +73,7 @@ class LocalizeListView extends StatelessWidget {
                         color: Colors.cyanAccent,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Center(child: const Text("Create")),
+                      child: const Center(child: Text("Create")),
                     ),
                   ),
                 ),
@@ -91,7 +91,7 @@ class LocalizeListView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       height: 56,
-                      child: Center(child: const Text("Export")),
+                      child: const Center(child: Text("Export")),
                     ),
                   ),
                 ),

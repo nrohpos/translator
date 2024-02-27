@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:translator/extension/string+extension.dart';
 import 'package:translator/model/keyword/keyword.dart';
@@ -22,13 +20,16 @@ class LanguagePage extends StatefulWidget {
 
 class _LanguagePageState extends State<LanguagePage> {
   late LanguageViewModel viewModel = Get.put(LanguageViewModel());
+  final searchController = TextEditingController();
   late Function(EventAction) onEventAction = (action) async {
     if (action == EventAction.create) {
       KeyWord keyword = KeyWord.init();
       showEdit(keyword);
     } else if (action == EventAction.export) {
-      viewModel.exportFile();
-      print("asdjfnasdfkasd");
+      final path = await viewModel.exportFile();
+      if (path.isNotEmpty && mounted) {
+        dialogBuilder(context, path);
+      }
     }
   };
 
@@ -81,12 +82,41 @@ class _LanguagePageState extends State<LanguagePage> {
                     ),
                     right: vm.showLoading.isTrue
                         ? const LoadingStateView()
-                        : LocalizeListView(
-                            items: vm.items,
-                            onEdit: (keyWord) {
-                              showEdit(keyWord);
-                            },
-                            onEventAction: onEventAction,
+                        : Column(
+                            children: [
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                ),
+                                child: SearchBar(
+                                  hintText: "Search",
+                                  controller: searchController,
+                                  onChanged: (str) {
+                                    viewModel.onFilterItems(str.toLowerCase());
+                                  },
+                                  trailing: [
+                                    ActionButton(
+                                      onPressed: () => {
+                                        searchController.text = "",
+                                        viewModel.onFilterItems(""),
+                                      },
+                                      icon: const Icon(Icons.clear),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: LocalizeListView(
+                                  items: vm.items,
+                                  onEdit: (keyWord) {
+                                    showEdit(keyWord);
+                                  },
+                                  onEventAction: onEventAction,
+                                ),
+                              )
+                            ],
                           ),
                   );
                 },
@@ -169,34 +199,88 @@ class _LanguagePageState extends State<LanguagePage> {
                       ],
                     ),
                     const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        navigator?.pop();
-                        keyWord.key = keyController.text;
-                        keyWord.value = valueController.text;
-                        viewModel.upSertKeyword(keyWord);
-                      },
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(120, 56),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(8),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            navigator?.pop();
+                            keyWord.key = keyController.text;
+                            keyWord.value = valueController.text;
+                            viewModel.upSertKeyword(keyWord);
+                          },
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(120, 56),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                              side: BorderSide(
+                                color: Colors.deepPurpleAccent,
+                              ),
+                            ),
                           ),
-                          side: BorderSide(
-                            color: Colors.deepPurpleAccent,
+                          child: const Text(
+                            "Submit",
                           ),
                         ),
-                      ),
-                      child: const Text(
-                        "Submit",
-                      ),
-                    ),
+                        Spacer(),
+                        if (keyController.text.isNotEmpty &&
+                            valueController.text.isNotEmpty)
+                          TextButton(
+                            onPressed: () async {
+                              navigator?.pop();
+                              viewModel.deleteKeyword(keyWord);
+                            },
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(120, 56),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                                side: BorderSide(
+                                  color: Colors.deepPurpleAccent,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Delete",
+                            ),
+                          ),
+                      ],
+                    )
                   ],
                 ),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Future<void> dialogBuilder(BuildContext context, String path) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: Text(
+            'File has been saved in \n$path.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Okay'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
       },
     );

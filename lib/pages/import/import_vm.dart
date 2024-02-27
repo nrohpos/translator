@@ -11,11 +11,10 @@ class ImportViewModel extends GetxController {
   var isSyncData = false.obs;
   var indicatorAmount = 0.0.obs;
   var isSyncSuccess = false.obs;
-  var isDatabaseEmpty = DatabaseHelper.shared.isDatabaseEmpty.obs;
-
 
   Future<bool> checkData() async {
-    return await DatabaseHelper.shared.isTableEmpty(tableName: "localize");
+    final data = KeyWordDao();
+    return data.isEmpty();
   }
 
   Future<void> getData(String language) async {
@@ -56,7 +55,8 @@ class ImportViewModel extends GetxController {
     });
   }
 
-  Future<void> resetDB() async {
+  Future<bool> resetDB() async {
     await DatabaseHelper.shared.resetDB();
+    return checkData();
   }
 }

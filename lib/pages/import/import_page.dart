@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:translator/db/database_helper.dart';
 import 'package:translator/pages/home/language_page.dart';
 import 'package:translator/pages/import/import_vm.dart';
 
@@ -36,123 +33,159 @@ class _ImportPageState extends State<ImportPage> {
           ),
         ),
       ),
-      body: GetBuilder<ImportViewModel>(
-        init: viewModel,
-        builder: (vm) {
-          if (viewModel.isSyncSuccess.isTrue) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Get.off(() => const LanguagePage());
-            });
-          }
-          return viewModel.isSyncData.isFalse
-              ? Column(
-                  children: [
-                    const Spacer(),
-                    GestureDetector(
-                      child: _ImportFileEmptyView(
-                        controller: controller,
-                      ),
-                      onTap: () async {
-                        final language = controller.text.trim();
-                        if (language.isNotEmpty) {
-                          await viewModel.getData(language);
-                          if (viewModel.isSyncSuccess.value) {
-                            Get.off(() => const LanguagePage());
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('Please enter a language'),
-                          ));
-                        }
-                      },
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            child: Container(
-                              margin: const EdgeInsets.only(
-                                  left: 16, bottom: 16, right: 8),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.cyanAccent.shade100,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "Reset",
-                                ),
-                              ),
+      body: FutureBuilder<bool>(
+        future: viewModel.checkData(),
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.connectionState == ConnectionState.done) {
+            print(snapshot.data);
+            var isEmpty = snapshot.data ?? true;
+            return GetBuilder<ImportViewModel>(
+              init: viewModel,
+              builder: (vm) {
+                if (viewModel.isSyncSuccess.isTrue) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Get.off(() => const LanguagePage());
+                  });
+                }
+                return viewModel.isSyncData.isFalse
+                    ? Column(
+                        children: [
+                          const Spacer(),
+                          GestureDetector(
+                            child: _ImportFileEmptyView(
+                              controller: controller,
                             ),
                             onTap: () async {
-                              await viewModel.resetDB();
+                              final language = controller.text.trim();
+                              if (language.isNotEmpty) {
+                                await viewModel.getData(language);
+                                if (viewModel.isSyncSuccess.value) {
+                                  Get.off(() => const LanguagePage());
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: Column(
+                                    children: [
+                                      Text('Please enter a language'),
+                                      Text(
+                                          'Check Data isEmpty >>>>> ${isEmpty}'),
+                                    ],
+                                  ),
+                                ));
+                              }
                             },
                           ),
-                        ),
-                        if (!viewModel.isDatabaseEmpty.value)
-                          Expanded(
-                            child: GestureDetector(
-                              child: Container(
-                                margin: const EdgeInsets.only(
-                                    right: 16, bottom: 16, left: 8),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                    color: Colors.cyanAccent.shade100,
-                                    borderRadius: BorderRadius.circular(16)),
-                                child: const Center(
-                                  child: Text(
-                                    "Home",
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  child: Container(
+                                    margin: const EdgeInsets.only(
+                                      left: 16,
+                                      bottom: 16,
+                                      right: 8,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.cyanAccent.shade100,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        "Reset",
+                                      ),
+                                    ),
                                   ),
+                                  onTap: () async {
+                                    final result = await viewModel.resetDB();
+                                    setState(() {
+                                      isEmpty = result;
+                                    });
+                                  },
                                 ),
                               ),
-                              onTap: () async {
-
-                              },
-                            ),
-                          ),
-                      ],
-                    )
-                  ],
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      Stack(
-                        children: [
-                          Container(
-                            width: Get.width,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.cyan.shade100,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(4),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: Get.width * viewModel.indicatorAmount.value,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.cyan.shade400,
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(4),
-                              ),
-                            ),
-                          ),
+                              if (!isEmpty)
+                                Expanded(
+                                  child: GestureDetector(
+                                    child: Container(
+                                      margin: const EdgeInsets.only(
+                                        right: 16,
+                                        bottom: 16,
+                                        left: 8,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.cyanAccent.shade100,
+                                        borderRadius: BorderRadius.circular(
+                                          16,
+                                        ),
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          "Home",
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      Get.off(() => const LanguagePage());
+                                    },
+                                  ),
+                                ),
+                            ],
+                          )
                         ],
-                      ),
-                      const Text(
-                        'We are processing your data.....',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    ],
-                  ),
-                );
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            Stack(
+                              children: [
+                                Container(
+                                  width: Get.width,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.cyan.shade100,
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: Get.width *
+                                      viewModel.indicatorAmount.value,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.cyan.shade400,
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Text(
+                              'We are processing your data.....',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ],
+                        ),
+                      );
+              },
+            );
+          } else {
+            return Container(
+              child: Text("Something went wrong"),
+            );
+          }
         },
       ),
     );
